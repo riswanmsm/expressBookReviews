@@ -25,52 +25,87 @@ public_users.post("/register", (req, res) => {
     .json({ message: "User successfully registred. Now you can login" });
 });
 
+// Get books using promise
+const getBooks = () => {
+  return new Promise((resolve, reject) => {
+    resolve(books);
+  });
+};
 // Get the book list available in the shop
 public_users.get("/", function (req, res) {
-  return res.status(200).send(JSON.stringify({ books }, null, 4));
+  getBooks()
+    .then((resolvedBooks) =>
+      res.status(200).send(JSON.stringify({ Books: resolvedBooks }, null, 4))
+    )
+    .catch((err) =>
+      res.status(400).json({ message: "Error while reading data" })
+    );
 });
 
 // Get book details based on ISBN
 public_users.get("/isbn/:isbn", function (req, res) {
   // ISBN from request parameter
   const isbn = req.params.isbn;
-  let filteredBook = {};
-  filteredBook[isbn] = books[isbn];
-  return res.status(200).send(JSON.stringify({ filteredBook }, null, 4));
+  getBooks()
+    .then((resolvedBooks) =>
+      res
+        .status(200)
+        .send(JSON.stringify({ Books: resolvedBooks[isbn] }, null, 4))
+    )
+    .catch((err) =>
+      res.status(400).json({ message: "Error while reading data" })
+    );
 });
 
 // Get book details based on author
 public_users.get("/author/:author", function (req, res) {
   // Author from request parameter
   const author = req.params.author;
-  // Take all the keys as array
-  const keys = Object.keys(books);
-  // Search authors by using keys in arrays to find the matching keys
-  const filteredBooksKeys = keys.filter((key) => books[key].author === author);
-  // Construct new object using the found keys
-  let filteredBook = {};
-  // Iterate using found keys to get the books and push to filteredBooks
-  filteredBooksKeys.forEach((key) => {
-    filteredBook[key] = books[key];
-  });
-  return res.status(200).send(JSON.stringify({ filteredBook }, null, 4));
+
+  getBooks()
+    .then((resolvedBooks) => {
+      // Take all the keys as array
+      const keys = Object.keys(resolvedBooks);
+      // Search authors by using keys in arrays to find the matching keys
+      const filteredBooksKeys = keys.filter(
+        (key) => resolvedBooks[key].author === author
+      );
+      // Construct new object using the found keys
+      let filteredBook = {};
+      // Iterate using found keys to get the books and push to filteredBooks
+      filteredBooksKeys.forEach((key) => {
+        filteredBook[key] = resolvedBooks[key];
+      });
+      return res
+        .status(200)
+        .send(JSON.stringify({ Books: filteredBook }, null, 4));
+    })
+    .catch((err) =>
+      res.status(400).json({ message: "Error while reading data" })
+    );
 });
 
 // Get all books based on title
 public_users.get("/title/:title", function (req, res) {
   // Title from request parameter
   const title = req.params.title;
-  // Take all the keys as array
-  const keys = Object.keys(books);
-  // Search title by using keys in arrays to find the matching keys
-  const filteredBooksKeys = keys.filter((key) => books[key].title === title);
-  // Construct new object using the found keys
-  let filteredBook = {};
-  // Iterate using found keys to get the books and push to filteredBooks
-  filteredBooksKeys.forEach((key) => {
-    filteredBook[key] = books[key];
+  getBooks().then((resolvedBooks) => {
+    // Take all the keys as array
+    const keys = Object.keys(resolvedBooks);
+    // Search title by using keys in arrays to find the matching keys
+    const filteredBooksKeys = keys.filter(
+      (key) => resolvedBooks[key].title === title
+    );
+    // Construct new object using the found keys
+    let filteredBook = {};
+    // Iterate using found keys to get the books and push to filteredBooks
+    filteredBooksKeys.forEach((key) => {
+      filteredBook[key] = resolvedBooks[key];
+    });
+    return res
+      .status(200)
+      .send(JSON.stringify({ Books: filteredBook }, null, 4));
   });
-  return res.status(200).send(JSON.stringify({ filteredBook }, null, 4));
 });
 
 //  Get book review
